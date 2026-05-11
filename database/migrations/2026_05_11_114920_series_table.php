@@ -16,10 +16,10 @@ return new class extends Migration
             $table->text('synopsis')->nullable();
             $table->string('cover_image')->nullable();
             $table->string('source_link', 500)->nullable();
-            
+
             // Fixed: Removed the apostrophe from 'Collectors Edition' to prevent SQLite syntax errors
             $table->enum('format_origin', ['Digital Scan', 'Tankobon Physical', 'Serialization', 'Collectors Edition'])->default('Digital Scan');
-            
+
             $table->date('induction_date');
             $table->unsignedInteger('chapters_completed')->default(0);
             $table->unsignedInteger('chapters_total')->nullable();

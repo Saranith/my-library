@@ -22,8 +22,10 @@ class ActivityLog extends Model
         'metadata' => 'array',
     ];
 
-    const ACTION_ADDED   = 'added';
-    const ACTION_EDITED  = 'edited';
+    const ACTION_ADDED = 'added';
+
+    const ACTION_EDITED = 'edited';
+
     const ACTION_DELETED = 'deleted';
 
     public function user(): BelongsTo
@@ -39,20 +41,20 @@ class ActivityLog extends Model
     public function getActionIconAttribute(): string
     {
         return match ($this->action) {
-            self::ACTION_ADDED   => 'add',
-            self::ACTION_EDITED  => 'edit',
+            self::ACTION_ADDED => 'add',
+            self::ACTION_EDITED => 'edit',
             self::ACTION_DELETED => 'delete_outline',
-            default              => 'info',
+            default => 'info',
         };
     }
 
     public function getActionLabelAttribute(): string
     {
         return match ($this->action) {
-            self::ACTION_ADDED   => 'Added to Collection',
-            self::ACTION_EDITED  => 'Edited Entry',
+            self::ACTION_ADDED => 'Added to Collection',
+            self::ACTION_EDITED => 'Edited Entry',
             self::ACTION_DELETED => 'Entry Removed',
-            default              => 'Activity',
+            default => 'Activity',
         };
     }
 
@@ -60,7 +62,7 @@ class ActivityLog extends Model
     {
         return match ($this->action) {
             self::ACTION_DELETED => 'text-error border-error',
-            default              => 'text-primary border-primary',
+            default => 'text-primary border-primary',
         };
     }
 }
