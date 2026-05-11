@@ -55,7 +55,7 @@ class SeriesController extends Controller
         $series = Series::create($validated);
 
         return redirect()->route('series.show', $series)
-            ->with('success', ""{$series->title}" has been sealed into the Archives.");
+            ->with('success', "\"{$series->title}\" has been sealed into the Archives.");
     }
 
     public function edit(Series $series): View
@@ -100,7 +100,7 @@ class SeriesController extends Controller
         $series->update($validated);
 
         return redirect()->route('series.show', $series)
-            ->with('success', ""{$series->title}" has been updated in the Archives.");
+            ->with('success', "\"{$series->title}\" has been updated in the Archives.");
     }
 
     public function updateProgress(Request $request, Series $series): RedirectResponse
@@ -128,6 +128,6 @@ class SeriesController extends Controller
         $series->delete();
 
         return redirect()->route('collection.index')
-            ->with('success', ""{$title}" has been removed from the Archives.");
+            ->with('success', "\"{$title}\" has been removed from the Archives.");
     }
 }
