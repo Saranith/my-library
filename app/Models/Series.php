@@ -50,9 +50,10 @@ class Series extends Model
 
     public function getProgressPercentageAttribute(): int
     {
-        if (!$this->chapters_total || $this->chapters_total === 0) {
+        if (! $this->chapters_total || $this->chapters_total === 0) {
             return 0;
         }
+
         return (int) round(($this->chapters_completed / $this->chapters_total) * 100);
     }
 
@@ -60,6 +61,7 @@ class Series extends Model
     {
         $completed = $this->chapters_completed ?? 0;
         $total = $this->chapters_total ? $this->chapters_total : '?';
+
         return "Ch. {$completed} / {$total}";
     }
 
@@ -67,7 +69,7 @@ class Series extends Model
     {
         $query->when($filters['search'] ?? null, function ($q, $search) {
             $q->where('title', 'like', "%{$search}%")
-              ->orWhere('author', 'like', "%{$search}%");
+                ->orWhere('author', 'like', "%{$search}%");
         })->when($filters['type'] ?? null, function ($q, $type) {
             if (strtolower($type) !== 'all') {
                 $q->where('type', strtoupper($type));
