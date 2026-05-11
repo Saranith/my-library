@@ -11,13 +11,13 @@ class SeriesObserver
     public function created(Series $series): void
     {
         ActivityLog::create([
-            'user_id'     => Auth::id() ?? $series->user_id,
-            'series_id'   => $series->id,
-            'action'      => ActivityLog::ACTION_ADDED,
+            'user_id' => Auth::id() ?? $series->user_id,
+            'series_id' => $series->id,
+            'action' => ActivityLog::ACTION_ADDED,
             'description' => "Added \"{$series->title}\" to the Imperial Archives.",
-            'metadata'    => [
-                'title'  => $series->title,
-                'type'   => $series->type,
+            'metadata' => [
+                'title' => $series->title,
+                'type' => $series->type,
                 'status' => $series->status,
             ],
         ]);
@@ -37,22 +37,22 @@ class SeriesObserver
         }
 
         ActivityLog::create([
-            'user_id'     => Auth::id() ?? $series->user_id,
-            'series_id'   => $series->id,
-            'action'      => ActivityLog::ACTION_EDITED,
-            'description' => implode('. ', $changes) . '.',
-            'metadata'    => ['changed_fields' => array_keys($dirty)],
+            'user_id' => Auth::id() ?? $series->user_id,
+            'series_id' => $series->id,
+            'action' => ActivityLog::ACTION_EDITED,
+            'description' => implode('. ', $changes).'.',
+            'metadata' => ['changed_fields' => array_keys($dirty)],
         ]);
     }
 
     public function deleted(Series $series): void
     {
         ActivityLog::create([
-            'user_id'     => Auth::id() ?? $series->user_id,
-            'series_id'   => $series->id,
-            'action'      => ActivityLog::ACTION_DELETED,
+            'user_id' => Auth::id() ?? $series->user_id,
+            'series_id' => null,
+            'action' => ActivityLog::ACTION_DELETED,
             'description' => "Removed \"{$series->title}\" from the Imperial Archives.",
-            'metadata'    => ['title' => $series->title],
+            'metadata' => ['title' => $series->title],
         ]);
     }
 }

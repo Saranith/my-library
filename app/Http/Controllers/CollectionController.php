@@ -9,7 +9,7 @@ class CollectionController extends Controller
 {
     public function index(Request $request): View
     {
-        $user   = $request->user();
+        $user = $request->user();
         $filter = $request->only(['search', 'type', 'status']);
 
         $series = $user->series()
@@ -18,11 +18,11 @@ class CollectionController extends Controller
             ->paginate(20);
 
         // Stats
-        $totalSeries      = $user->series()->count();
-        $newThisMonth     = $user->series()->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)->count();
-        $totalChapters    = $user->total_chapters;
-        $avgRating        = $user->average_rating;
-        $librarianRank    = $user->librarian_rank;
+        $totalSeries = $user->series()->count();
+        $newThisMonth = $user->series()->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)->count();
+        $totalChapters = $user->total_chapters;
+        $avgRating = $user->average_rating;
+        $librarianRank = $user->librarian_rank;
 
         return view('collection.index', compact(
             'series',
