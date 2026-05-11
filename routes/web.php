@@ -1,14 +1,14 @@
 <?php
 
+use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CollectionController;
 use App\Http\Controllers\SeriesController;
-use App\Http\Controllers\ActivityLogController;
 use Illuminate\Support\Facades\Route;
 
 // Auth routes
 Route::middleware('guest')->group(function () {
-    Route::get('/', fn() => redirect()->route('login'));
+    Route::get('/', fn () => redirect()->route('login'));
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
     Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 });
