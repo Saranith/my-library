@@ -33,7 +33,7 @@ class ActivityLog extends Model
 
     public function series(): BelongsTo
     {
-        return $this->belongsTo(Series::class)->withTrashed();
+        return $this->belongsTo(Series::class);
     }
 
     public function getActionIconAttribute(): string

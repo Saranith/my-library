@@ -125,35 +125,44 @@
 @endif
 
 @auth
-{{-- Top Header --}}
-<header class="w-full top-0 sticky z-50 bg-surface border-b border-outline-variant shadow-2xl md:pl-64">
+{{-- Top Header (Fixed Width and Margin for Desktop) --}}
+<header class="w-full md:w-[calc(100%-16rem)] md:ml-64 top-0 sticky z-40 bg-surface border-b border-outline-variant shadow-2xl">
     <div class="flex justify-between items-center h-16 px-4 md:px-8 max-w-full mx-auto">
         <div class="flex items-center gap-4">
             @hasSection('back_button')
                 @yield('back_button')
             @else
-                <a href="{{ route('collection.index') }}" class="flex items-center gap-3">
-                    <span class="material-symbols-outlined text-primary">library_books</span>
-                    <h1 class="font-newsreader text-headline-sm text-primary uppercase tracking-widest hidden sm:block">The Archivist</h1>
+                {{-- Visible only on mobile: Brand & Title --}}
+                <a href="{{ route('collection.index') }}" class="flex items-center gap-3 md:hidden group">
+                    <div class="w-8 h-8 bg-primary flex items-center justify-center shrink-0 group-hover:bg-primary-container transition-colors">
+                        <span class="material-symbols-outlined text-on-primary text-sm" style="font-variation-settings:'FILL' 1;">menu_book</span>
+                    </div>
+                    <div class="flex flex-col justify-center">
+                        <h1 class="font-newsreader text-[16px] leading-tight text-primary">Imperial Library</h1>
+                        <span class="font-inter text-[9px] text-outline uppercase tracking-[0.15em] leading-none mt-0.5">The Archivist</span>
+                    </div>
                 </a>
             @endif
         </div>
-        <div class="flex items-center gap-4">
+        <div class="flex items-center gap-4 ml-auto">
             <div class="hidden md:flex relative">
                 <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-sm">search</span>
                 <form action="{{ route('collection.index') }}" method="GET">
                     <input name="search" value="{{ request('search') }}" placeholder="Search collection..." class="bg-surface-container-lowest border-b border-outline focus:border-primary transition-all duration-300 pl-9 pr-4 py-1 text-sm outline-none text-on-surface placeholder:text-on-surface-variant/50" />
                 </form>
             </div>
-            <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center border border-outline-variant">
+            
+            {{-- Clickable Profile Icon --}}
+            <a href="{{ route('profile.edit') }}" class="w-8 h-8 rounded-full bg-primary flex items-center justify-center border border-outline-variant hover:scale-110 active:scale-95 transition-transform duration-200 shadow-lg">
                 <span class="material-symbols-outlined text-on-primary text-sm">person</span>
-            </div>
+            </a>
         </div>
     </div>
 </header>
 
-{{-- Desktop Sidebar --}}
-<aside class="hidden md:flex h-screen w-64 fixed left-0 top-0 bg-surface-container border-r border-outline-variant shadow-[20px_0_40px_rgba(0,0,0,0.6)] flex-col py-8 gap-y-6 z-40">
+
+{{-- Desktop Sidebar (Increased Z-index to 50) --}}
+<aside class="hidden md:flex h-screen w-64 fixed left-0 top-0 bg-surface-container border-r border-outline-variant shadow-[20px_0_40px_rgba(0,0,0,0.6)] flex-col py-8 gap-y-6 z-50">
     <div class="px-6 mb-2">
         <div class="flex items-center gap-3 mb-1">
             <div class="w-10 h-10 bg-primary flex items-center justify-center">
@@ -195,7 +204,7 @@
 </aside>
 
 {{-- Main content --}}
-<main class="md:pl-64 min-h-screen pb-20 md:pb-0">
+<main class="md:pl-64 min-h-screen pb-20 md:pb-0 relative z-10">
     @yield('content')
 </main>
 

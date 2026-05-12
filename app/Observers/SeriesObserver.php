@@ -45,14 +45,14 @@ class SeriesObserver
         ]);
     }
 
-    public function deleted(Series $series): void
+        public function deleted(Series $series): void
     {
         ActivityLog::create([
-            'user_id'     => Auth::id() ?? $series->user_id,
-            'series_id'   => $series->id,
-            'action'      => ActivityLog::ACTION_DELETED,
-            'description' => "Removed \"{$series->title}\" from the Imperial Archives.",
-            'metadata'    => ['title' => $series->title],
+            'user_id' => $series->user_id,
+            'series_id' => null, // <-- CRITICAL: Must be null
+            'action' => 'deleted',
+            'description' => 'Removed "' . $series->title . '" from the Imperial Archives.',
+            'metadata' => ['title' => $series->title],
         ]);
     }
 }

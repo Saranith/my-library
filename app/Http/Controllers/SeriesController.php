@@ -3,133 +3,118 @@
 namespace App\Http\Controllers;
 
 use App\Models\Series;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\View\View;
+use Illuminate\Support\Facades\Gate;
 
 class SeriesController extends Controller
 {
-    public function show(Request $request, Series $series): View
+    /**
+     * Display a listing of the resource.
+     */
+    public function index()
     {
-        $this->authorize('view', $series);
+        Gate::authorize('viewAny', Series::class);
+
+        $series = Series::where('user_id', auth()->id())->get();
+
+        return view('collection.index', compact('series'));
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create()
+    {
+        Gate::authorize('create', Series::class);
+
+        return view('series.create');
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(Request $request)
+    {
+        Gate::authorize('create', Series::class);
+
+        // We added all the missing fields here so Laravel allows them through!
+        $validated = $request->validate([
+            'title'              => 'required|string|max:255',
+            'synopsis'           => 'nullable|string',
+            'cover_image'        => 'nullable|string', // Changed to string so it doesn't fail strict URL checks
+            'chapters_completed' => 'nullable|integer|min:0',
+            'chapters_total'     => 'nullable|integer|min:0',
+            'status'             => 'nullable|string',
+            'type'               => 'nullable|string',
+            'rating'             => 'nullable|numeric|min:0|max:10',
+            'author'             => 'nullable|string|max:255',
+            'source_link'        => 'nullable|string',
+        ]);
+
+        // Automatically set the induction date to right now
+        $validated['induction_date'] = now();
+
+        $request->user()->series()->create($validated);
+
+        return redirect()->route('collection.index')->with('success', 'Series created successfully.');
+    }
+
+
+    /**
+     * Display the specified resource.
+     */
+    public function show(Series $series)
+    {
+        Gate::authorize('view', $series);
 
         return view('series.show', compact('series'));
     }
 
-    public function create(): View
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(Series $series)
     {
-        return view('series.create');
-    }
-
-    public function store(Request $request): RedirectResponse
-    {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'author' => 'nullable|string|max:255',
-            'synopsis' => 'nullable|string',
-            'source_link' => 'nullable|url|max:500',
-            'format_origin' => 'required|in:Digital Scan,Tankobon Physical,Serialization,Collector\'s Edition',
-            'induction_date' => 'required|date',
-            'chapters_completed' => 'required|integer|min:0',
-            'chapters_total' => 'nullable|integer|min:1',
-            'rating' => 'nullable|numeric|min:0|max:10',
-            'status' => 'required|in:Plan to Read,Currently Reading,Completed,On Hold,Dropped',
-            'type' => 'required|in:MANGA,MANHUA,MANHWA',
-            'tags' => 'nullable|array',
-            'tags.*' => 'string|max:50',
-            'cover_image' => 'nullable|image|max:5120',
-            'cover_url' => 'nullable|url|max:500',
-            'official_sources' => 'nullable|array',
-        ]);
-
-        if ($request->hasFile('cover_image')) {
-            $validated['cover_image'] = $request->file('cover_image')->store('covers', 'public');
-        } elseif ($request->filled('cover_url')) {
-            $validated['cover_image'] = $request->input('cover_url');
-        }
-
-        $validated['user_id'] = $request->user()->id;
-        $validated['tags'] = $request->input('tags', []);
-        $validated['official_sources'] = $request->input('official_sources', []);
-
-        $series = Series::create($validated);
-
-        return redirect()->route('series.show', $series)
-            ->with('success', "\"{$series->title}\" has been sealed into the Archives.");
-    }
-
-    public function edit(Series $series): View
-    {
-        $this->authorize('update', $series);
+        Gate::authorize('update', $series);
 
         return view('series.edit', compact('series'));
     }
 
-    public function update(Request $request, Series $series): RedirectResponse
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, Series $series)
     {
-        $this->authorize('update', $series);
+        Gate::authorize('update', $series);
 
+        // Updated these validation rules to match the store method
         $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'author' => 'nullable|string|max:255',
-            'synopsis' => 'nullable|string',
-            'source_link' => 'nullable|url|max:500',
-            'format_origin' => 'required|in:Digital Scan,Tankobon Physical,Serialization,Collector\'s Edition',
-            'induction_date' => 'required|date',
-            'chapters_completed' => 'required|integer|min:0',
-            'chapters_total' => 'nullable|integer|min:1',
-            'rating' => 'nullable|numeric|min:0|max:10',
-            'status' => 'required|in:Plan to Read,Currently Reading,Completed,On Hold,Dropped',
-            'type' => 'required|in:MANGA,MANHUA,MANHWA',
-            'tags' => 'nullable|array',
-            'tags.*' => 'string|max:50',
-            'cover_image' => 'nullable|image|max:5120',
-            'cover_url' => 'nullable|url|max:500',
-        ]);
-
-        if ($request->hasFile('cover_image')) {
-            if ($series->cover_image && ! str_starts_with($series->cover_image, 'http')) {
-                Storage::disk('public')->delete($series->cover_image);
-            }
-            $validated['cover_image'] = $request->file('cover_image')->store('covers', 'public');
-        } elseif ($request->filled('cover_url')) {
-            $validated['cover_image'] = $request->input('cover_url');
-        }
-
-        $validated['tags'] = $request->input('tags', []);
-
-        $series->update($validated);
-
-        return redirect()->route('series.show', $series)
-            ->with('success', "\"{$series->title}\" has been updated in the Archives.");
-    }
-
-    public function updateProgress(Request $request, Series $series): RedirectResponse
-    {
-        $this->authorize('update', $series);
-
-        $validated = $request->validate([
-            'chapters_completed' => 'required|integer|min:0',
+            'title'              => 'required|string|max:255',
+            'synopsis'           => 'nullable|string',
+            'cover_image'        => 'nullable|string',
+            'chapters_completed' => 'nullable|integer|min:0',
+            'chapters_total'     => 'nullable|integer|min:0',
+            'status'             => 'nullable|string',
+            'type'               => 'nullable|string',
+            'rating'             => 'nullable|numeric|min:0|max:10',
+            'author'             => 'nullable|string|max:255',
+            'source_link'        => 'nullable|string',
         ]);
 
         $series->update($validated);
 
-        return back()->with('success', 'Reading progress updated.');
+        return redirect()->route('series.show', $series)->with('success', 'Series updated successfully.');
     }
 
-    public function destroy(Series $series): RedirectResponse
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(Series $series)
     {
-        $this->authorize('delete', $series);
-        $title = $series->title;
-
-        if ($series->cover_image && ! str_starts_with($series->cover_image, 'http')) {
-            Storage::disk('public')->delete($series->cover_image);
-        }
+        Gate::authorize('delete', $series);
 
         $series->delete();
 
-        return redirect()->route('collection.index')
-            ->with('success', "\"{$title}\" has been removed from the Archives.");
+        return redirect()->route('collection.index')->with('success', 'Series deleted successfully.');
     }
 }
