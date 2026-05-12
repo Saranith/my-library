@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Series;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
@@ -12,7 +13,7 @@ class SeriesController extends Controller
 {
     public function show(Request $request, Series $series): View
     {
-        $this->authorize('view', $series);
+        Gate::authorize('view', $series);
 
         return view('series.show', compact('series'));
     }
@@ -61,14 +62,14 @@ class SeriesController extends Controller
 
     public function edit(Series $series): View
     {
-        $this->authorize('update', $series);
+        Gate::authorize('update', $series);
 
         return view('series.edit', compact('series'));
     }
 
     public function update(Request $request, Series $series): RedirectResponse
     {
-        $this->authorize('update', $series);
+        Gate::authorize('update', $series);
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
@@ -107,7 +108,7 @@ class SeriesController extends Controller
 
     public function updateProgress(Request $request, Series $series): RedirectResponse
     {
-        $this->authorize('update', $series);
+        Gate::authorize('update', $series);
 
         $validated = $request->validate([
             'chapters_completed' => 'required|integer|min:0',
@@ -120,7 +121,7 @@ class SeriesController extends Controller
 
     public function destroy(Series $series): RedirectResponse
     {
-        $this->authorize('delete', $series);
+        Gate::authorize('delete', $series);
         $title = $series->title;
 
         if ($series->cover_image && ! str_starts_with($series->cover_image, 'http')) {
