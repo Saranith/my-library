@@ -14,7 +14,7 @@ return new class extends Migration
             $table->string('title');
             $table->string('author')->nullable();
             $table->text('synopsis')->nullable();
-            $table->string('cover_image')->nullable();
+            $table->text('cover_image')->nullable();
             $table->string('source_link', 500)->nullable();
             
             // Fixed: Removed the apostrophe from 'Collectors Edition' to prevent SQLite syntax errors

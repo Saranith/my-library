@@ -23,7 +23,7 @@
         <div>
             <label class="font-inter text-label-md text-outline uppercase mb-3 block">Cover Art</label>
             <div class="relative group h-64 w-full bg-surface-container overflow-hidden border border-outline-variant deep-shadow flex items-center justify-center cursor-pointer" id="cover-drop-zone" onclick="document.getElementById('cover_input').click()">
-                <img id="cover-preview" class="absolute inset-0 w-full h-full object-cover opacity-30 group-hover:opacity-60 transition-opacity duration-500 hidden" />
+                <img id="cover-preview" class="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-500 hidden" />
                 <div class="relative z-10 flex flex-col items-center pointer-events-none" id="upload-placeholder">
                     <span class="material-symbols-outlined text-primary text-5xl mb-3" style="font-variation-settings:'FILL' 1;">add_a_photo</span>
                     <span class="font-inter text-label-md text-primary uppercase">Upload Cover Art</span>
@@ -34,6 +34,7 @@
             <input
                 type="url"
                 name="cover_url"
+                id="cover_url_input"
                 placeholder="https://example.com/cover.jpg"
                 value="{{ old('cover_url') }}"
                 class="input-underlined font-newsreader text-body-md mt-3"
@@ -162,18 +163,44 @@
 function previewCover(input) {
     if (input.files && input.files[0]) {
         const url = URL.createObjectURL(input.files[0]);
+        // Clear the URL field when a file is chosen
+        document.getElementById('cover_url_input').value = '';
         showPreview(url);
     }
 }
+
 function previewUrl(url) {
-    if (url) showPreview(url);
-    else { document.getElementById('cover-preview').classList.add('hidden'); }
+    const img = document.getElementById('cover-preview');
+    if (url && url.trim()) {
+        // Only show preview once the image actually loads
+        img.onload = function () {
+            showPreview(url);
+        };
+        img.onerror = function () {
+            img.classList.add('hidden');
+            document.getElementById('upload-placeholder').classList.remove('hidden');
+        };
+        img.src = url;
+    } else {
+        img.classList.add('hidden');
+        document.getElementById('upload-placeholder').classList.remove('hidden');
+    }
 }
+
 function showPreview(url) {
     const img = document.getElementById('cover-preview');
     img.src = url;
     img.classList.remove('hidden');
+    document.getElementById('upload-placeholder').classList.add('hidden');
 }
+
+// Auto-preview if cover_url is pre-filled (e.g. after validation error)
+document.addEventListener('DOMContentLoaded', function () {
+    const urlInput = document.getElementById('cover_url_input');
+    if (urlInput && urlInput.value.trim()) {
+        previewUrl(urlInput.value.trim());
+    }
+});
 </script>
 <x-series-form-scripts />
 @endpush

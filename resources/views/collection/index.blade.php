@@ -34,14 +34,14 @@
         </div>
     </section>
 
-    {{-- Collection Grid (Wrapped with an ID for JS targeting) --}}
-    <section id="collection-wrapper" class="transition-opacity duration-300">
+    {{-- Collection Grid --}}
+    <section>
         <div class="flex flex-col md:flex-row md:justify-between md:items-end gap-4 mb-6">
             <h2 class="font-newsreader text-headline-md text-on-surface">Current Readings</h2>
             <div class="flex gap-4 font-inter text-label-md">
                 @foreach(['all' => 'ALL', 'MANGA' => 'MANGA', 'MANHUA' => 'MANHUA', 'MANHWA' => 'MANHWA'] as $val => $label)
                     <a href="{{ route('collection.index', array_merge(request()->query(), ['type' => $val])) }}"
-                       class="ajax-link {{ (($filter['type'] ?? 'all') === $val) ? 'text-primary border-b border-primary' : 'text-outline hover:text-on-surface transition-colors' }} cursor-pointer">
+                       class="{{ (($filter['type'] ?? 'all') === $val) ? 'text-primary border-b border-primary' : 'text-outline hover:text-on-surface transition-colors' }} cursor-pointer">
                         {{ $label }}
                     </a>
                 @endforeach
@@ -62,19 +62,18 @@
                 @foreach($series as $item)
                     <a href="{{ route('series.show', $item) }}" class="group flex flex-col gap-3">
                         <div class="relative aspect-[3/4] overflow-hidden border border-outline-variant deep-shadow transition-transform duration-300 group-hover:-translate-y-1">
-                                                        @if($item->cover_image)
+                            @if($item->cover_image)
                                 <img
                                     src="{{ str_starts_with($item->cover_image, 'http') ? $item->cover_image : asset('storage/'.$item->cover_image) }}"
                                     alt="{{ $item->title }}"
-                                    referrerpolicy="no-referrer" {{-- This is the magic fix for external links! --}}
                                     class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500"
+                                    referrerpolicy="no-referrer"
                                 />
                             @else
                                 <div class="w-full h-full bg-surface-container-high flex items-center justify-center">
                                     <span class="material-symbols-outlined text-primary text-5xl opacity-30" style="font-variation-settings:'FILL' 1;">book</span>
                                 </div>
                             @endif
-
                             {{-- Rating badge --}}
                             @if($item->rating)
                                 <div class="absolute top-2 right-2 bg-surface-container-highest/90 border border-primary px-2 py-1 flex items-center gap-1">
@@ -100,7 +99,7 @@
 
             {{-- Pagination --}}
             @if($series->hasPages())
-                <div class="mt-10 flex justify-center ajax-pagination">
+                <div class="mt-10 flex justify-center">
                     {{ $series->appends(request()->query())->links('pagination::simple-tailwind') }}
                 </div>
             @endif
@@ -112,56 +111,4 @@
 <a href="{{ route('series.create') }}" class="fixed bottom-24 right-6 md:right-12 md:bottom-8 bg-primary text-on-primary w-14 h-14 flex items-center justify-center deep-shadow hover:scale-110 active:scale-95 transition-all duration-200 z-50">
     <span class="material-symbols-outlined text-3xl">add</span>
 </a>
-
-{{-- Instant Filtering Script --}}
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    const wrapper = document.getElementById('collection-wrapper');
-
-    // Listen for clicks on the filter links OR pagination links inside the wrapper
-    wrapper.addEventListener('click', async (e) => {
-        const link = e.target.closest('.ajax-link, .ajax-pagination a');
-        
-        if (!link) return;
-
-        e.preventDefault();
-        const url = link.href;
-
-        // Visual feedback (fade out slightly and prevent multiple clicks)
-        wrapper.classList.add('opacity-50', 'pointer-events-none');
-
-        try {
-            // Fetch the HTML of the selected filter
-            const response = await fetch(url, {
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
-            });
-            
-            const html = await response.text();
-
-            // Parse the returned HTML
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(html, 'text/html');
-            const newWrapper = doc.getElementById('collection-wrapper');
-
-            if (newWrapper) {
-                // Swap the inner HTML (this updates the grid, pagination, AND the active filter classes)
-                wrapper.innerHTML = newWrapper.innerHTML;
-                
-                // Update the browser's URL bar without refreshing
-                window.history.pushState(null, '', url);
-            }
-        } catch (error) {
-            console.error('Error fetching collection data:', error);
-        } finally {
-            // Restore visual state
-            wrapper.classList.remove('opacity-50', 'pointer-events-none');
-        }
-    });
-
-    // Handle user clicking the browser "Back" or "Forward" buttons
-    window.addEventListener('popstate', () => {
-        window.location.reload();
-    });
-});
-</script>
 @endsection

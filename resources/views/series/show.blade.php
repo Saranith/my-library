@@ -18,6 +18,7 @@
                 src="{{ str_starts_with($series->cover_image, 'http') ? $series->cover_image : asset('storage/'.$series->cover_image) }}"
                 alt="{{ $series->title }}"
                 class="w-full h-full object-cover"
+                referrerpolicy="no-referrer"
             />
         @else
             <div class="w-full h-full bg-surface-container flex items-center justify-center">

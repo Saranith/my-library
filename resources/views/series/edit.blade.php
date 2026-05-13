@@ -26,18 +26,31 @@
                 @if($series->cover_image)
                     <img id="cover-preview"
                          src="{{ str_starts_with($series->cover_image, 'http') ? $series->cover_image : asset('storage/'.$series->cover_image) }}"
-                         class="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity duration-500"
+                         class="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-500"
                     />
                 @else
-                    <img id="cover-preview" class="absolute inset-0 w-full h-full object-cover opacity-60 hidden" />
+                    <img id="cover-preview" class="absolute inset-0 w-full h-full object-cover opacity-80 hidden" />
                 @endif
-                <div class="relative z-10 flex flex-col items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <div class="relative z-10 flex flex-col items-center opacity-0 group-hover:opacity-100 transition-opacity" id="upload-placeholder">
                     <span class="material-symbols-outlined text-primary text-4xl" style="font-variation-settings:'FILL' 1;">photo_camera</span>
                     <span class="font-inter text-label-md text-primary uppercase mt-1">Change Cover</span>
                 </div>
                 <input type="file" id="cover_input" name="cover_image" accept="image/*" class="hidden" onchange="previewCover(this)" />
             </div>
-            <input type="url" name="cover_url" placeholder="Or paste new URL..." value="{{ old('cover_url') }}" class="input-underlined font-newsreader text-body-md mt-3" />
+            {{--
+                Pre-fill with the existing URL if the stored cover_image is an external URL.
+                This ensures: (a) the user sees what URL is currently saved, and
+                (b) if they submit without changing anything, the controller keeps the URL.
+            --}}
+            <input
+                type="url"
+                name="cover_url"
+                id="cover_url_input"
+                placeholder="Or paste new URL..."
+                value="{{ old('cover_url', str_starts_with($series->cover_image ?? '', 'http') ? $series->cover_image : '') }}"
+                class="input-underlined font-newsreader text-body-md mt-3"
+                oninput="previewUrl(this.value)"
+            />
         </div>
 
         {{-- Core Details --}}
@@ -155,11 +168,50 @@
 
 @push('scripts')
 <script>
+// Stored cover info for reverting when URL field is cleared
+const storedCoverIsFile = {{ $series->cover_image && !str_starts_with($series->cover_image, 'http') ? 'true' : 'false' }};
+const storedCoverSrc = '{{ $series->cover_image ? (str_starts_with($series->cover_image, 'http') ? $series->cover_image : asset("storage/" . $series->cover_image)) : "" }}';
+
 function previewCover(input) {
     if (input.files && input.files[0]) {
-        document.getElementById('cover-preview').src = URL.createObjectURL(input.files[0]);
-        document.getElementById('cover-preview').classList.remove('hidden');
+        const url = URL.createObjectURL(input.files[0]);
+        // Clear the URL field when a file is selected
+        document.getElementById('cover_url_input').value = '';
+        showPreview(url);
     }
+}
+
+function previewUrl(url) {
+    const img = document.getElementById('cover-preview');
+    if (url && url.trim()) {
+        img.onload = function () {
+            showPreview(url);
+        };
+        img.onerror = function () {
+            // Bad URL — revert to stored cover if there is one
+            if (storedCoverSrc) {
+                img.src = storedCoverSrc;
+                img.classList.remove('hidden');
+            } else {
+                img.classList.add('hidden');
+            }
+        };
+        img.src = url;
+    } else {
+        // URL cleared — revert to stored cover or hide
+        if (storedCoverSrc) {
+            img.src = storedCoverSrc;
+            img.classList.remove('hidden');
+        } else {
+            img.classList.add('hidden');
+        }
+    }
+}
+
+function showPreview(url) {
+    const img = document.getElementById('cover-preview');
+    img.src = url;
+    img.classList.remove('hidden');
 }
 </script>
 <x-series-form-scripts />
